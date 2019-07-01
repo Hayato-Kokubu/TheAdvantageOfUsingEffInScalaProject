@@ -1,0 +1,14 @@
+- プロジェクトで引き回す型をEffにするメリット
+
+Eff の話　以外に
+業務例外・システム例外 を含む型の扱い方のメリデメ一覧となっていて良き
+
+・Future[A]
+・Future[Try[A]]
+・Future[EIther[E,A]]
+・Either[Future,E,A]
+
+- Future の代わりに Task が使われることもある
+  Task とは？  monix.Task とScalaz.Task がある
+
+・Eff[E,A]
