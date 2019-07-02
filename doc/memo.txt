@@ -12,3 +12,17 @@ Eff の話　以外に
   Task とは？  monix.Task とScalaz.Task がある
 
 ・Eff[E,A]
+
+
+
+----
+・Future[A]
+  まずは使い方 (cup本参照)
+  - ポーリング(処理が完了したかどうかを調べる)のために
+    isCompleted と value がある
+
+    isCompleted: Boolean
+      処理が完了していないならfalse, 完了したら true を返す
+
+    value: Option[Try]
+      処理が完了していないならNone, 完了したら Some(Try) を返す
