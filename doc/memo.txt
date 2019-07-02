@@ -26,3 +26,10 @@ Eff の話　以外に
 
     value: Option[Try]
       処理が完了していないならNone, 完了したら Some(Try) を返す
+
+    ※ Try 型
+      Success と Failure があり、これでエラーハンドリングをする
+
+      通常のtry-catch では
+      非同期処理の場合計算を始めたスレッド != 例外を投げたスレッド となることがあり
+      元のスレッドがcatch節を処理できない
