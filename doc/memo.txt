@@ -33,3 +33,30 @@ Eff の話　以外に
       通常のtry-catch では
       非同期処理の場合計算を始めたスレッド != 例外を投げたスレッド となることがあり
       元のスレッドがcatch節を処理できない
+
+
+エラーハンドリングが荒い
+=> Throwable で業務例外を作る // Javaっぽい感じ
+     class UserNotFoundExeption extends MyException 的な
+     Throwableを扱うから型安全でない？
+
+
+・vs Option  Throwable を持つぶん Noneよりは情報がある
+・vs Either  Either[Throwable, T] と同様
+
+コールバック : 関数を渡すこと
+  Future に関数  Thread.sleep ; 21 * 23 ; をわたす　みたいな
+
+https://docs.scala-lang.org/ja/overviews/core/futures.html
+
+
+Futureでのエラーハンドリングはこんな感じ？
+
+
+Try[T] は SUccess[T] または Failure[]
+
+問題 セマフォ の制御？ ができない [要検証]
+
+
+
+

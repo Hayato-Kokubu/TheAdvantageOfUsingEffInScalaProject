@@ -1,0 +1,1 @@
+object UserNotFound extends Exception
