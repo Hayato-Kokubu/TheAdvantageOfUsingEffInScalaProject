@@ -52,11 +52,15 @@ https://docs.scala-lang.org/ja/overviews/core/futures.html
 
 Futureでのエラーハンドリングはこんな感じ？
 
-
-Try[T] は SUccess[T] または Failure[]
+Try[T] は SUccess[T] または Failure(e: Throwable)[T]
 
 問題 セマフォ の制御？ ができない [要検証]
 
+
+----
+Future[Try[T]]
+
+エラーハンドリングはこんな感じ？
 
 
 
