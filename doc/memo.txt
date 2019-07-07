@@ -63,4 +63,18 @@ Future[Try[T]]
 エラーハンドリングはこんな感じ？
 
 
+----
+
+Task とは？
+
+標準ではTask はない
+Scalaz.Task
+Monix.Task
+
+
+
+
+
+
+
 
