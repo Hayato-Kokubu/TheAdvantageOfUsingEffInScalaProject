@@ -73,6 +73,12 @@ Monix.Task
 
 
 
+----
+Future[Either[E, T]]
+
+・Either により、業務例外を扱えるようになる
+
+・型合わせが難しい
 
 
 
