@@ -1,13 +1,53 @@
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-
-import scala.util.{Failure, Success}
+import Implicits._
 
 object Main extends App {
 
-  val res = Future{
-    Thread.sleep(100) ;
-    if (Math.random * 100 < 50) Success("user found") else Failure(UserNotFound)
-  }
+  val ps = implicitly[Printable[String]]
+  val pb = implicitly[Printable[Boolean]]
+
+  println( ps.format("hello") )
+  println( pb.format(true) )
 
 }
+
+
+// self => という書き方は何？
+trait Printable[A] { self =>
+  def format(value: A): String
+  def contramap[B](func: B => A): Printable[B] =
+    new Printable[B] {
+      def format(value: B): String ={
+        self.format(func(value))
+      }
+    }
+}
+
+object Printable{
+  def format[A](value: A)(implicit p: Printable[A]): String =
+    p.format(value)
+
+}
+
+object Implicits {
+  implicit val stringPrintable: Printable[String] =
+    new Printable[String] {
+      def format(value: String): String =
+        "\"" + value + "\""
+    }
+
+  implicit val booleanPrintable: Printable[Boolean] =
+    new Printable[Boolean] {
+      def format(value: Boolean): String =
+        if(value) "yes" else "no"
+    }
+
+  implicit def boxPrintable[A](implicit pa: Printable[A]): Printable[Box[A]] = {
+    new Printable[Box[A]] {
+      def format(box: Box[A]): String = {
+        pa.format(box.value)
+      }
+    }
+  }
+}
+
+final case class Box[A](value: A)
