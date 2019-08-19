@@ -81,6 +81,9 @@ Future[Either[E, T]]
 ・型合わせが難しい
 
 
+--------
+Eff
+  例はわかりづらいので、getStartedしよう
 
-
+メインの構成物は Eff, Member, Fx
 
