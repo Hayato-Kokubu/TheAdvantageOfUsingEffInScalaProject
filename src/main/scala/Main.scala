@@ -27,6 +27,17 @@ object Main extends App {
       _  <- ot.map(t => store[T, R](key, f(t))).getOrElse(Eff.pure(()))
     } yield ()
 
+
+  def program[R :_kvstore]: Eff[R, Option[Int]] =
+    for {
+      _ <- store("wild-cats", 2)
+      _ <- update[Int, R]("wild-cats", _ + 12)
+      _ <- store("tame-cats", 5)
+      n <- find[Int, R]("wild-cats")
+      _ <- delete("tame-cats")
+    } yield n
+
+
 }
 
 sealed trait KVStore[+A]

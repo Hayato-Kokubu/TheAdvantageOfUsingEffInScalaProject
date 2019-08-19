@@ -123,6 +123,10 @@ DSL for a key-value stor のようなもの
    これにより、KVStore はRのメンバーとなる。？？？
 
 2. Build a program out of key-value DSL operations
+   見た目はmonadみたいな使い方
+   しかし、再帰的なデータ構造を作っただけ
+
+
 3. Build an interpreter for programs of DSL operations
 4. Execute our interpreted program
 5. [optional] add some syntax for the interpreter
