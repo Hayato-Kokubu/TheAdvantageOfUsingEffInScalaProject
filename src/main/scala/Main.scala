@@ -1,5 +1,3 @@
-//import cats._
-//import data._
 import org.atnos.eff.{Eff, Fx}
 
 import org.atnos.eff.eval._          // use delay
@@ -13,9 +11,8 @@ import org.atnos.eff.syntax.eff._    // use run
 
 
 
-
 object Main extends App {
-  type S = Fx.fx1[Option]
+  type SO = Fx.fx1[Option]
 
   val evalEff = delay(1 + 1).runEval.run
   println(evalEff)
@@ -25,12 +22,15 @@ object Main extends App {
     Map("key1" -> 10, "key2" -> 20)
 
 
-  def addKeys(key1: String, key2: String): Eff[S, Int] = for {
+  def addKeys(key1: String, key2: String): Eff[SO, Int] = for {
     a <- fromOption(map.get(key1))
     b <- fromOption(map.get(key2))
   } yield a + b
 
   val optionEff = (addKeys("key1", "key2").runOption.run, addKeys("key1", "missing").runOption.run)
   println(optionEff)
+
+  type SE = Fx.fx1[String Either ?] // use kind-projector
+
 
 }
