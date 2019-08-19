@@ -3,6 +3,8 @@ import cats.implicits._
 import cats.data._
 
 import org.atnos.eff._ // to use |=
+//import org.atnos.eff.syntax.eff._ // to use run
+import org.atnos.eff.syntax.all._
 import org.atnos.eff.either._
 import org.atnos.eff.writer._
 import org.atnos.eff.state._
@@ -160,6 +162,26 @@ object Main extends App {
     })
   }
 
+  val a = runKVStoreUnsafe(program[Fx.fx1[KVStore]]).run
+  println(a)
+
+//  put(wild-cats, 2)
+//  get(wild-cats)
+//  put(wild-cats, 14)
+//  put(tame-cats, 5)
+//  get(wild-cats)
+//  delete(tame-cats)
+//  Some(14)
+
+  type Stack = Fx.fx4[KVStore, Throwable Either ?, State[Map[String, Any], ?], Writer[String, ?]]
+
+  val (result, logs) =
+    runKVStore(program[Stack]).runEither.evalState(Map.empty[String, Any]).runWriter.run
+
+  println("###############")
+
+  val b = (result.toString +: logs).mkString("\n")
+  println(b)
 
 
 }
