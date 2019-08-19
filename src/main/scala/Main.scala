@@ -1,45 +1,36 @@
-import org.atnos.eff.{Eff, Fx}
-
-
-import org.atnos.eff.either._
-import org.atnos.eff.syntax.either._
-
-import org.atnos.eff.syntax.eff._
-
-import org.atnos.eff.all._
-
+import org.atnos.eff._ // to use |=
 
 object Main extends App {
 
-  type SE = Fx.fx1[String Either ?] // use kind-projector
+  // T |= R is an alias for MemberIn[T, R]
+  // stating that effects of type T[_] can be injected in the effect stack R
+  //                         型クラス KVStore はRに注入される？
+  // It is also equivalent to MemberIn[KVStore, R]
+  type _kvstore[R] = KVStore |= R // smart constructor を作成
 
-  val mapE: Map[String, Int] = Map("key1" -> 10, "key2" -> 20)
+  /** store returns nothing (i.e. Unit) */
+  def store[T, R :_kvstore](key: String, value: T): Eff[R, Unit] =
+    Eff.send[KVStore, R, Unit](Put(key, value))
 
-  // intelliJ では解決してくれないけど動く
-  def addKeys(key1: String, key2: String): Eff[SE, Int] = for {
-    a <- optionEither(mapE.get(key1), s"'$key1' not found")
-    b <- optionEither(mapE.get(key2), s"'$key2' not found")
-  } yield a + b
+  /** find returns a T value if the key exists */
+  def find[T, R :_kvstore](key: String): Eff[R, Option[T]] =
+    Eff.send[KVStore, R, Option[T]](Get(key))
 
-  val c = (addKeys("key1", "key2").runEither.run, addKeys("key1", "missing").runEither.run)
-  println(c)
+  /** delete returns nothing (i.e. Unit) */
+  def delete[T, R :_kvstore](key: String): Eff[R, Unit] =
+    Eff.send(Delete(key))
 
+  /** update composes get and put, and returns nothing. */
+  def update[T, R :_kvstore](key: String, f: T => T): Eff[R, Unit] =
+    for {
+      ot <- find[T, R](key)
+      _  <- ot.map(t => store[T, R](key, f(t))).getOrElse(Eff.pure(()))
+    } yield ()
 
-
-  type E = Fx.fx1[TooBig Either ?]
-
-  val i = 7
-
-  val value: Eff[E, Int] =
-    if (i > 5) left[E, TooBig, Int](TooBig(i))
-    else       right[E, TooBig, Int](i)
-
-  val action: Eff[E, Int] = catchLeft[E, TooBig, Int](value) { case TooBig(k) =>
-    if (k < 10) right[E, TooBig, Int](k)
-    else        left[E, TooBig, Int](TooBig(k))
-  }
-
-  action.runEither.run ==== Right(7)
 }
 
-case class TooBig(value: Int)
+sealed trait KVStore[+A]
+
+case class Put[T](key: String, value: T) extends KVStore[Unit]
+case class Get[T](key: String) extends KVStore[Option[T]]
+case class Delete(key: String) extends KVStore[Unit]

@@ -102,6 +102,27 @@ Reader -> Writer -> Eval -> Writer としている。
 (特に、最後のWriter 処理を実行したいときに書かなくていい)
 
 
+Free Monad for Cats なんてものがある！
 
 
+Eff は
+DSL for a key-value stor のようなもの
+・keyにひもづくvalueを格納 <===> write a sequence of these operations in the embedded DSL as a “program”
+・keyからvalueを取得      <===> interpret the “program”,
+・keyにひもづくvalueを削除 <===>  finally execute the “program”
 
+
+特に、プログラムの生成と実行は分離したい // よく聞くが、何だろう？
+
+
+・ADT(代数的データ型) のFree 化
+
+1. Create smart constructors for KVStore[_] using Eff.send
+
+   スマートコンストラクタ を作り、store, find, delete, update メソッドを作る
+   これにより、KVStore はRのメンバーとなる。？？？
+
+2. Build a program out of key-value DSL operations
+3. Build an interpreter for programs of DSL operations
+4. Execute our interpreted program
+5. [optional] add some syntax for the interpreter
