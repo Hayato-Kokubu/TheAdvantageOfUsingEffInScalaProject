@@ -87,3 +87,21 @@ Eff
 
 メインの構成物は Eff, Member, Fx
 
+
+introduction
+やはりあの論文が元
+Monad Transformer に比べて、色々ご利益はある
+
+Eff[R, A] R: a set of effects , A:  the value returned by the computation
+なんか見たことある(けどよくわからないやつ)
+
+
+program の例では
+実行を runReader, runWriter, runEval .run するだけで
+Reader -> Writer -> Eval -> Writer としている。
+(特に、最後のWriter 処理を実行したいときに書かなくていい)
+
+
+
+
+
