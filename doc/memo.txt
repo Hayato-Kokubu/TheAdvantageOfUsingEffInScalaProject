@@ -128,5 +128,18 @@ DSL for a key-value stor のようなもの
 
 
 3. Build an interpreter for programs of DSL operations
+   eff は DSL(domain specific language)を作るためのもの。
+   DSLを解釈して実行するinterpreter が必要
+
+   eff は(monad同様)一連の処理 のように見える。
+   => List のfoldのように処理を結合することを考えられる。
+
+
+   interpretUnsafe: 副作用をを定義するtrait
+     interpretUnsafe(x: X): T[X]
+   translate: 同じstackの他のeffectへ翻訳する
+
+
+
 4. Execute our interpreted program
 5. [optional] add some syntax for the interpreter

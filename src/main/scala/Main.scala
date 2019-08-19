@@ -1,4 +1,15 @@
+import cats.Traverse
+import cats.implicits._
+import cats.data._
+
 import org.atnos.eff._ // to use |=
+import org.atnos.eff.either._
+import org.atnos.eff.writer._
+import org.atnos.eff.state._
+import org.atnos.eff.interpret._  // to use interpretUnsafe
+
+import scala.collection.mutable._ // to use put, get
+import scala.language.higherKinds
 
 object Main extends App {
 
@@ -36,6 +47,119 @@ object Main extends App {
       n <- find[Int, R]("wild-cats")
       _ <- delete("tame-cats")
     } yield n
+
+  /**
+   * Unsafe interpreter for KVStore effects
+   *
+   * the program will crash if a type is incorrectly specified.
+   *
+   * The interpreter requires the KVStore effect to be a Member of R (with <=)
+   * Meaning that we can statically know the resulting type once we have removed
+   * KVStore from R, and this type is m.Out.
+   *
+   * The interpreter uses the `interpretUnsafe` method from `org.atnos.eff.Interpreter` to implement a
+   * stack-safe interpretation of effects as a side-effect.
+   *
+   * `interpretUnsafe` needs the definition of a side-effect where
+   * we get each `KVStore[X]` effect, run side-effects and return a value `X`.
+   *
+   * The resulting effect stack is m.Out which is R without the KVStore effects
+   *
+   */
+  def runKVStoreUnsafe[R, A](effects: Eff[R, A])(implicit m: KVStore <= R): Eff[m.Out, A] = {
+    // a very simple (and imprecise) key-value store
+    val kvs = Map.empty[String, Any]
+
+    val sideEffect = new SideEffect[KVStore] {
+      def apply[X](kv: KVStore[X]): X =
+        kv match {
+          case Put(key, value) =>
+            println(s"put($key, $value)")
+            kvs.put(key, value)
+            ().asInstanceOf[X]
+
+          case Get(key) =>
+            println(s"get($key)")
+            kvs.get(key).asInstanceOf[X]
+
+          case Delete(key) =>
+            println(s"delete($key)")
+            kvs.remove(key)
+            ().asInstanceOf[X]
+        }
+
+      def applicative[X, Tr[_] : Traverse](ms: Tr[KVStore[X]]): Tr[X] =
+        ms.map(apply)
+    }
+    interpretUnsafe(effects)(sideEffect)(m)
+
+  }
+
+
+  type _writerString[R] = Writer[String, ?] |= R
+  type _stateMap[R]     = State[Map[String, Any], ?] |= R
+
+  /**
+   * Safe interpreter for KVStore effects
+   *
+   * It uses the following effects:
+   *
+   *  - Writer to create log statements
+   *  - State to update a key-value Map
+   *  - Either to raise errors if the type of an object in the map is not of the expected type
+   *
+   *  The resulting effect stack is U which is R without the KVStore effects
+   *
+   *  Note that we just require the Throwable, Writer and State effects to
+   *  be able to be created in the stack U
+   *
+   * This interpreter uses the org.atnos.eff.interpreter.translate method
+   * translating one effect of the stack to other effects in the same stack
+   *
+   *
+   * NOTE:
+   * - It is really important for type inference that the effects for U are listed after those for R!
+   *
+   * Implicit member definitions will NOT be found with the following definition:
+   *
+   * def runKVStore[R, U :_throwableEither :_writerString :_stateMap, A](effects: Eff[R, A]) (
+   *   implicit m: Member.Aux[KVStore, R, U]): Eff[U, A] = {
+   *
+   */
+
+  def runKVStore[R, U, A](effects: Eff[R, A])
+    (implicit m: Member.Aux[KVStore, R, U],
+      throwable:_throwableEither[U],
+      writer:_writerString[U],
+      state:_stateMap[U]): Eff[U, A] = {
+
+    translate(effects)(new Translate[KVStore, U] {
+      def apply[X](kv: KVStore[X]): Eff[U, X] =
+        kv match {
+          case Put(key, value) =>
+            for {
+              _ <- tell(s"put($key, $value)")
+              _ <- modify((map: Map[String, Any]) => map.updated(key, value))
+              r <- fromEither(Either.catchNonFatal(().asInstanceOf[X]))
+            } yield r
+
+          case Get(key) =>
+            for {
+              _ <- tell(s"get($key)")
+              m <- get[U, Map[String, Any]]
+              r <- fromEither(Either.catchNonFatal(m.get(key).asInstanceOf[X]))
+            } yield r
+
+          case Delete(key) =>
+            for {
+              _ <- tell(s"delete($key)")
+              u <- modify((map: Map[String, Any]) => map - key)
+              r <- fromEither(Either.catchNonFatal(().asInstanceOf[X]))
+            } yield r
+        }
+    })
+  }
+
 
 
 }
